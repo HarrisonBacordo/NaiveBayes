@@ -15,10 +15,26 @@ def classify(attr, class_):
     :param class_: class to get probability on
     :return: the class which holds the highest probability
     """
-    prob = 0
-    if class_ == 1:
-        return max(prob, classify(attr, False))
-    return prob
+    class_prior = class_freqs[class_]
+    likelihood = 1
+    for i, j in zip(attr_freqs[class_], attr):
+        if j == 0:
+            likelihood *= 1 - i
+        else:
+            likelihood *= i
+    # predictor_prior = 1
+    # for i, j, k in zip(attr_freqs[1], attr_freqs[0], attr):
+    #     if k == 0:
+    #         predictor_prior *= ((1 - i)*class_prior) + ((1 - j) * (1 - class_prior))
+    #     else:
+    #         predictor_prior *= (i*class_prior) + (j * (1 - class_prior))
+    prob = (likelihood * class_prior)
+    if class_ == 0:
+        return prob
+    f_prob = classify(attr, 0)
+    if f_prob > prob:
+        return 0
+    return 1
 
 
 def evaluate(data):
@@ -30,7 +46,7 @@ def evaluate(data):
     answers = list()
     for email in data:
         answers.append(classify(email, 1))
-    return 0
+    return answers
 
 
 def train(dataset):
@@ -48,7 +64,7 @@ def train(dataset):
             counts[label] += attr[:-1]
     freqs = {1: [x / len(classes[1]) for x in counts[1]],
              0: [x / len(classes[0]) for x in counts[0]]}
-    return counts, freqs
+    return freqs, counts
 
 
 def sort_classes(data):
@@ -69,7 +85,7 @@ def main(trainfname, testfname):
     global class_freqs, class_counts, attr_freqs, attr_counts
     # convert data to CSVs readable by pandas
     traindata = pd.read_csv(trainfname, names=trainfields, header=None, skipinitialspace=True, sep=' ')
-    testdata = pd.read_csv(testfname, skipinitialspace=True)
+    testdata = pd.read_csv(testfname, skipinitialspace=True, sep=' ')
     # get class frequencies and class counts
     freqs, counts = traindata.spam.value_counts(normalize=True), traindata.spam.value_counts(normalize=True)
     class_freqs, class_counts = {1: freqs.get_value(1, 1), 0: freqs.get_value(0, 1)}, \
