@@ -85,7 +85,7 @@ def main(trainfname, testfname):
     global class_freqs, class_counts, attr_freqs, attr_counts
     # convert data to CSVs readable by pandas
     traindata = pd.read_csv(trainfname, names=trainfields, header=None, skipinitialspace=True, sep=' ')
-    testdata = pd.read_csv(testfname, skipinitialspace=True, sep=' ')
+    testdata = pd.read_csv(testfname, skipinitialspace=True, sep=' ', header=None)
     # get class frequencies and class counts
     freqs, counts = traindata.spam.value_counts(normalize=True), traindata.spam.value_counts(normalize=True)
     class_freqs, class_counts = {1: freqs.get_value(1, 1), 0: freqs.get_value(0, 1)}, \
